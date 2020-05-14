@@ -1,0 +1,65 @@
+h5 Existing Issues
+table#issues.table.table-hover.table-sm
+  thead
+    tr
+      th(scope='col') Date
+      th(scope='col') Part #
+      th(scope='col') Author
+      th(scope='col') Text
+  tbody
+nav
+  ul.pagination.justify-content-center
+    li.page-item
+      a.page-link(href='#' aria-label='Previous')
+        span(aria-hidden='true') &laquo;
+    li.page-item.active
+      a.page-link(href='#') 1
+    li.page-item
+      a.page-link(href='#') 2
+    li.page-item
+      a.page-link(href='#') 3
+    li.page-item
+      a.page-link(href='#' aria-label='Next')
+        span(aria-hidden='true') &raquo;
+
+h5 New Issue
+form#issue-form
+  .row.mb-2
+    label.col-sm-2.col-form-label(for='issue-part') Part #
+    .col-sm-10
+      input#issue-part.form-control-plaintext(type='text' readonly='' value='123')
+  .row.mb-2
+    label.col-sm-2.col-form-label(for='issue-title') Type
+    .col-sm-10
+      select#issue-title.form-control.form-control-sm
+        option Minor
+        option Major
+        option Urgent
+        option Critical
+  .row.mb-2
+    label.col-sm-2.col-form-label(for='issue-author') Author
+    .col-sm-10
+      select#issue-author.form-control.form-control-sm
+        option Sherbaum Valery
+        option Erenburg Vladimir
+        option John Golley
+        option Wilbert Awdry
+        option Bill Gunston
+        option Klaus Hünecke
+        option Irwin E. Treager
+  .row.mb-2
+    label.col-sm-1.col-form-label(for='issue-position-x') X
+    .col-sm-3
+      input#issue-position-x.form-control(type='text' value='0.0')
+    label.col-sm-1.col-form-label(for='issue-position-y') Y
+    .col-sm-3
+      input#issue-position-y.form-control(type='text' value='0.0')
+    label.col-sm-1.col-form-label(for='issue-position-z') Z
+    .col-sm-3
+      input#issue-position-z.form-control(type='text' value='0.0')
+  button.btn.btn-primary.btn-block(type='submit') Submit
+#issue-modal.modal.fade(tabindex='-1' role='dialog' aria-hidden='true')
+  .modal-dialog
+    .modal-content
+      .modal-body
+        p ...
