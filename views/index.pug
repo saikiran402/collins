@@ -12,5 +12,359 @@ head
   #sidebar(style='display:none')
     include partials/sidebar.pug
   include partials/footer.pug
-      
+  hr
+  doctype html
+html(lang='en')
+  head
+    title Collins' Flight Simulator
+    meta(charset='utf-8')
+    meta(property='og:title', content="Collins' Flight Simulator")
+    // All srcipts
+    script(type='text/javascript', src='gl-matrix-min.js')
+    script(type='text/javascript', src='webgl-utils.js')
+    script(type='text/javascript', src='gauge.min.js')
+    script(type='text/javascript', src='nouislider.min.js')
+    script(type='text/javascript', src='startup.js')
+    script(type='text/javascript', src='view.js')
+    script(type='text/javascript', src='terrain.js')
+    script(type='text/javascript', src='airplane.js')
+    script(type='text/javascript', src='misc.js')
+    script(type='text/javascript', src='interface.js')
+    script(type='text/javascript', src='physics.js')
+    script(type='text/javascript', src='webgl-debug.js')
+    link(rel='stylesheet', type='text/css', href='nouislider.min.css')
+  body(onload='startup();', style='height: 600px;')
+    // Instructions
+    #instructions(onclick="document.getElementById('instructions').style.display = 'none';", style='position: absolute; width: 100%; height: 1200px; background-color: rgba(50, 50, 50, 0.8); z-index: 200; display: block;')
+      div(style='margin: auto; margin-top: 50px; padding: 20px; width: 80%; background-color: rgba(255,255,255,1.0);')
+        h3
+          | Instructions: 
+          small (Click anywhere to close this page)
+        ul
+          li
+            p Goal: Fly over the mountains and land on the runway on the other side.
+          li
+            | Operations: (The keys inside parenthesis are for the left-handed.)
+            ul
+              li
+                p
+                  | Use the mouse on the 
+                  b
+                    i thrust
+                  |  slider to control thrust force (moving forward).
+                  br
+                  |                    (Thrust can also be controlled with keys 
+                  b
+                    i X (L)
+                  |  and 
+                  b
+                    i Z (K)
+                  | )
+                p
+              li
+                p
+                  | Press 
+                  b
+                    i Up-arrow (W)
+                  |  and 
+                  b
+                    i Down-arrow (S)
+                  |  to control 
+                  i Pitch
+                  | . It only works when the speed is sufficiently fast to overcome gravity.
+              li
+                p
+                  | Press 
+                  b
+                    i Left-arrow (A)
+                  |  and 
+                  b
+                    i Right-arrow (D)
+                  |  to control 
+                  i Roll
+                  | . It only works in the air. When the plane is on the ground, 
+                  i Yaw
+                  |  (Direction) is changed instead.
+              li
+                p
+                  | Press 
+                  b
+                    i C (J)
+                  |  or click on the 
+                  b
+                    i Toggle Reverse
+                  |  button to enable reverse thrust (used to decelerate after landing).
+              li
+                p
+                  | Press 
+                  b
+                    i R
+                  |  to restart.
+          li
+            | Useful hints:
+            ul
+              li
+                p At takeoff:
+                ol
+                  li
+                    p
+                      | Use full thrust (100%). Hold "Up-arrow (W)" key until the plane finally leaves the ground.
+                  li
+                    p Control the Pitch to be about +20 deg. Climb to height at about 5000 ft.
+                  li
+                    p Make a big U-turn by adjusting Roll, and you'll see the beautiful mountains.
+              li
+                p In the air:
+                ol
+                  li
+                    p
+                      | Reduce the thrust such that the velocity is around 200 knots. (This is the steady state.)
+                  li
+                    p Adjust Pitch to get to desired Height. Be aware not to hit the mountains.
+                  li
+                    p
+                      | Right after you pass the mountains, start decreasing hieght and speed to prepare for landing.
+              li
+                p Landing:
+                ol
+                  li
+                    p Make a big U-turn again. Aim the runway from afar.
+                  li
+                    p Decrease height by keeping Pitch at about -10 deg.
+                  li
+                    p
+                      | When the height is close to zero, control Pitch at around 0 deg carefully so that you don't crash into the ocean. If you find that you cannot lift the pitch, that means your airspeed is too slow. (140-160 knots are good values.)
+                  li
+                    p If you touch the gorund too hard or with large pitch or roll, you will crash.
+              li
+                p After touchdown:
+                ol
+                  li
+                    p Make the thrust -100% to decelerate.
+                  li
+                    p Control direction so that you don't crash into the mountains.
+                  li
+                    p
+                      | It's fine if you don't land exactly on the runway. You can cruise to runway after deceleration.
+                  li
+                    p The winning condition is such that you stop on the runway.
+        h4
+          i Finally, practice makes perfect!
+    // Canvas
+    div(style='width: 520px; display: inline-block; vertical-align: top;')
+      canvas#myGLCanvas(width='500', height='500')
+    // Interfaces
+    div(style='display: inline-block; vertical-align: top;')
+      h2 Welcome to Collins' flight simulator!
+      // Obstacle options
+      div
+        | Obstacles: 
+        form(action='', style='display: inline-block; margin-right: 20px;')
+          input(type='radio', name='obstacle', value='', onclick='setObstacleLevel(0);this.blur();', checked='checked')
+          |  None
+          input(type='radio', name='obstacle', value='', onclick='setObstacleLevel(1);this.blur();')
+          |  Static
+          input(type='radio', name='obstacle', value='', onclick='setObstacleLevel(2);this.blur();')
+          |  Moving
+        a(href='javascript:void(0);', onclick="document.getElementById('instructions').style.display = 'block';") Click here for useful instructions!
+      // Message board
+      div
+        p
+          | Status: 
+          span#msgDOM  
+      // All other interfaces
+      .interfaceContainer
+        .interfaceDiv(style='width: 100px; border: 1px solid red; padding: 5px')
+          h4 Thrust
+          #thrustSlider(style='height:200px; margin: auto; margin-top: 20px; margin-bottom: 30px;')
+          p#thrustSliderValue  
+          button#reverseButton(onclick="reverse=!reverse; this.style.borderStyle = (this.style.borderStyle!=='inset' ? 'inset' : 'outset'); ", style='border-style: outset;') Toggle reverse thrust (used after landing)
+        .interfaceDiv(style='margin-top: 5px; width: 70px;')
+          h4 Height
+          #heightSlider(style='height:200px; margin: auto; margin-top: 20px; margin-bottom: 30px;')
+          p#heightSliderValue  
+        .interfaceDiv(style='margin-top: 5px; width: 70px;')
+          h4 Pitch
+          #pitchSlider(style='height:200px; margin: auto; margin-top: 20px; margin-bottom: 30px;')
+          p#pitchSliderValue  
+        div(style='display: inline-block; margin-top: 5px;')
+          .interfaceDiv(style='width:240px;')
+            h4 Roll
+            #rollSlider(style='width:220px; margin: auto; margin-top: 35px; margin-bottom: 30px; ')
+            p#rollSliderValue  
+          .interfaceDiv
+            h4 Horizontal Velocity
+            canvas#velocityGaugeCanvas(width='120', height='80')
+            p#velocityGaugeValue  
+          br
+          .interfaceDiv(style='margin-top: 5px; width:240px;')
+            h4 Position and Orientation
+            #positionDOM(style='position: relative; margin-left: 20px; width: 200px; height: 200px; border: 1px dashed gray; text-align: left; background-color: #c7ffc6;')
+              // North Direction icon by Icons8
+              img#orientationCompass(src='https://maxcdn.icons8.com/Color/PNG/96/Maps/north_direction-96.png', title='North Direction', width='24', style='position: absolute; z-index: 100;')
+              div(style='position: absolute; width: 2px; height: 20px; background-color: brown; left: 99px; top: 180px')
+              div(style='position: absolute; width: 2px; height: 20px; background-color: orange; left: 99px; top: 0px')
+          .interfaceDiv(style='margin-top: 5px;')
+            h4 Fuel
+            canvas#fuelGaugeCanvas(width='120', height='80')
+            p#fuelGaugeValue  
+    // Shader program source codes (not displayed)
+    #shader_codes(style='display:none;')
+      // Terrain vertex shader
+      // Gouraud shading with Phong reflection model
+      #terrainVertexShaderDOM
+        | attribute vec3 aVertexPosition;
+        | attribute vec3 aVertexColor;
+        | attribute vec3 aVertexNormal;
+        | uniform mat4 uPMatrix;
+        | uniform mat4 uMVMatrix;
+        | uniform vec3 uViewOrigin;
+        | uniform vec3 uLightDirection;
+        | uniform vec3 uAmbientLight;
+        | uniform vec3 uDiffuseLight;
+        | uniform vec3 uSpecularLight;
+        | const float shininess = 12.0;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        | vec3 normalizedLightDirection = normalize(uLightDirection);
+        | vec3 vectorReflection = normalize( reflect(-normalizedLightDirection, aVertexNormal) );
+        | vec3 vectorView = normalize( uViewOrigin - aVertexPosition );
+        | float diffuseLightWeighting = max( dot(aVertexNormal, normalizedLightDirection), 0.0 );
+        | float specularLightWeighting = pow( max( dot(vectorReflection, vectorView), 0.0), shininess );
+        | vColor= vec4( ( uAmbientLight * aVertexColor)
+        | + ((uDiffuseLight * aVertexColor) * diffuseLightWeighting)
+        | + ( uSpecularLight * specularLightWeighting),
+        | 1.0 );
+        | }
+      // Terrain fragment shader
+      #terrainFragmentShaderDOM
+        | precision mediump float;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_FragColor = vColor;
+        | }
+      // Airplane vertex shader
+      // Phong shading with Phong reflection model
+      #airplaneVertexShaderDOM
+        | attribute vec3 aVertexPosition;
+        | attribute vec3 aVertexColor;
+        | attribute vec3 aVertexNormal;
+        | uniform mat4 uPMatrix;
+        | uniform mat4 uMVMatrix;
+        | uniform mat4 uModelMatrix;
+        | varying vec3 vWorldPosition;
+        | varying vec3 vWorldNormal;
+        | varying vec3 vVertexColor;
+        | void main(void) {
+        | vec4 worldPosition = uModelMatrix * vec4(aVertexPosition, 1.0);
+        | vWorldPosition = vec3(worldPosition);
+        | vWorldNormal = normalize(mat3(uModelMatrix) * aVertexNormal);
+        | vVertexColor = aVertexColor;
+        | gl_Position = uPMatrix * uMVMatrix * worldPosition;
+        | }
+      // Airplane fragment shader
+      #airplaneFragmentShaderDOM
+        | precision mediump float;
+        | const float shininess = 50.0;
+        | uniform vec3 uViewOrigin;
+        | uniform vec3 uLightDirection;
+        | uniform vec3 uAmbientLight;
+        | uniform vec3 uDiffuseLight;
+        | uniform vec3 uSpecularLight;
+        | varying vec3 vWorldPosition;
+        | varying vec3 vWorldNormal;
+        | varying vec3 vVertexColor;
+        | void main(void) {
+        | vec3 worldPosition = vWorldPosition;
+        | vec3 worldNormal = normalize(vWorldNormal);
+        | vec3 normalizedLightDirection = normalize(uLightDirection);
+        | vec3 vectorReflection = normalize( reflect(-normalizedLightDirection, worldNormal) );
+        | vec3 vectorView = normalize( uViewOrigin - worldPosition );
+        | float diffuseLightWeighting = max( dot(worldNormal, normalizedLightDirection), 0.0 );
+        | float specularLightWeighting = pow( max( dot(vectorReflection, vectorView), 0.0), shininess );
+        | gl_FragColor = vec4( ( uAmbientLight * vVertexColor)
+        | + ((uDiffuseLight * vVertexColor) * diffuseLightWeighting)
+        | + ( uSpecularLight * specularLightWeighting),
+        | 1.0 );
+        | }
+      // Misc vertex shader
+      // Gouraud shading with Phong reflection model (no specular part)
+      #miscVertexShaderDOM
+        | attribute vec3 aVertexPosition;
+        | attribute vec3 aVertexColor;
+        | attribute vec3 aVertexNormal;
+        | uniform mat4 uPMatrix;
+        | uniform mat4 uMVMatrix;
+        | uniform vec3 uViewOrigin;
+        | uniform vec3 uLightDirection;
+        | uniform vec3 uAmbientLight;
+        | uniform vec3 uDiffuseLight;
+        | uniform vec3 uSpecularLight;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        | vec3 normalizedLightDirection = normalize(uLightDirection);
+        | vec3 vectorReflection = normalize( reflect(-normalizedLightDirection, aVertexNormal) );
+        | vec3 vectorView = normalize( uViewOrigin - aVertexPosition );
+        | float diffuseLightWeighting = max( dot(aVertexNormal, normalizedLightDirection), 0.0 );
+        | vColor= vec4( ( uAmbientLight * aVertexColor)
+        | + ((uDiffuseLight * aVertexColor) * diffuseLightWeighting),
+        | 1.0 );
+        | }
+      // Misc fragment shader
+      #miscFragmentShaderDOM
+        | precision mediump float;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_FragColor = vColor;
+        | }
+    style(type='text/css').
+      .interfaceDiv {
+      display: inline-block;
+      position: relative;
+      text-align: center;
+      vertical-align: top;
+      }
+      .interfaceDiv > * {
+      margin: 0px;
+      }
+    script(type='text/javascript').
+      const Interval =  setInterval(check,500);
+      function check(){
+      var a = getLiftForces();
+      if(a != 0){
+      document.cookie =
+      'start=true;path=/'
+      console.log("Engine Started");
+      clearInterval(Interval);
+      }
+      }
+      const Intervals = setInterval(as,500);
+      function getLiftForces(){
+      /** Lift force = KEY_COEFF * LIFT_FORCE_COEFF * horizontal velocity */
+      if (currentlyPressedKeys[38] || currentlyPressedKeys[87]) {
+      /** More lift force when Up-arrow or W is pressed. */
+      return LIFT_PITCH_COEFF[2] * LIFT_FORCE_COEFF * getHorizontalVelocity();
+      }else if (currentlyPressedKeys[40] || currentlyPressedKeys[83]) {
+      /** Less lift force when Down-arrow or S is pressed. */
+      return LIFT_PITCH_COEFF[0] * LIFT_FORCE_COEFF * getHorizontalVelocity();
+      }else{
+      /** Default lift force. */
+      return LIFT_PITCH_COEFF[1] * LIFT_FORCE_COEFF * getHorizontalVelocity();
+      }
+      }
+      function as() {
+      if(!playing){
+      document.cookie =
+      'stop=true;path=/'
+      clearInterval(Intervals);
+      }
+      // body...
+      }
+      document.cookie.split(";").forEach(function(c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
+      document.addEventListener('keyup', function(e){
+      if(e.keyCode == 82)
+      window.location.reload();
+      })
   
