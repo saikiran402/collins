@@ -435,4 +435,15 @@ if(ground === false && viewOrigin[2] <= AIRPLANE_HEIGHT){
 }
 }
 
+function getDragForces(){
+
+  /** Drag force = DRAG_FORCE_COEFF * (velocity)^(DRAG_FORCE_POWER) */
+
+  /** If velocity if too small, no drag force. */
+  if(vec3.length(velocity) > DRAG_FORCE_THRESHOLD){
+    return DRAG_FORCE_COEFF * Math.pow(vec3.length(velocity), DRAG_FORCE_POWER);
+  }else{
+    return 0;
+  }
+}
 

@@ -6,16 +6,15 @@ head
   #header
     img(src='/images/forge-logo-gray.png' alt='Autodesk Forge Digital Twin Demo')
     h Digital Twin Demo
-  #viewer
   h2#content(style='text-align:center;margin-top:20px;') Engine is not Ready
    h2#content-after(style='text-align:center;margin-top:20px;display:none') Engine Stopped
-  #sidebar(style='display:none')
-    include partials/sidebar.pug
+  #sidebar(style='display:none;float:left')
+    include partials/sidebarmain.pug
   include partials/footer.pug
-  hr
   doctype html
 html(lang='en')
   head
+  #viewer
     title Collins' Flight Simulator
     meta(charset='utf-8')
     meta(property='og:title', content="Collins' Flight Simulator")
@@ -35,127 +34,14 @@ html(lang='en')
     link(rel='stylesheet', type='text/css', href='nouislider.min.css')
   body(onload='startup();', style='height: 600px;')
     // Instructions
-    #instructions(onclick="document.getElementById('instructions').style.display = 'none';", style='position: absolute; width: 100%; height: 1200px; background-color: rgba(50, 50, 50, 0.8); z-index: 200; display: block;')
-      div(style='margin: auto; margin-top: 50px; padding: 20px; width: 80%; background-color: rgba(255,255,255,1.0);')
-        h3
-          | Instructions: 
-          small (Click anywhere to close this page)
-        ul
-          li
-            p Goal: Fly over the mountains and land on the runway on the other side.
-          li
-            | Operations: (The keys inside parenthesis are for the left-handed.)
-            ul
-              li
-                p
-                  | Use the mouse on the 
-                  b
-                    i thrust
-                  |  slider to control thrust force (moving forward).
-                  br
-                  |                    (Thrust can also be controlled with keys 
-                  b
-                    i X (L)
-                  |  and 
-                  b
-                    i Z (K)
-                  | )
-                p
-              li
-                p
-                  | Press 
-                  b
-                    i Up-arrow (W)
-                  |  and 
-                  b
-                    i Down-arrow (S)
-                  |  to control 
-                  i Pitch
-                  | . It only works when the speed is sufficiently fast to overcome gravity.
-              li
-                p
-                  | Press 
-                  b
-                    i Left-arrow (A)
-                  |  and 
-                  b
-                    i Right-arrow (D)
-                  |  to control 
-                  i Roll
-                  | . It only works in the air. When the plane is on the ground, 
-                  i Yaw
-                  |  (Direction) is changed instead.
-              li
-                p
-                  | Press 
-                  b
-                    i C (J)
-                  |  or click on the 
-                  b
-                    i Toggle Reverse
-                  |  button to enable reverse thrust (used to decelerate after landing).
-              li
-                p
-                  | Press 
-                  b
-                    i R
-                  |  to restart.
-          li
-            | Useful hints:
-            ul
-              li
-                p At takeoff:
-                ol
-                  li
-                    p
-                      | Use full thrust (100%). Hold "Up-arrow (W)" key until the plane finally leaves the ground.
-                  li
-                    p Control the Pitch to be about +20 deg. Climb to height at about 5000 ft.
-                  li
-                    p Make a big U-turn by adjusting Roll, and you'll see the beautiful mountains.
-              li
-                p In the air:
-                ol
-                  li
-                    p
-                      | Reduce the thrust such that the velocity is around 200 knots. (This is the steady state.)
-                  li
-                    p Adjust Pitch to get to desired Height. Be aware not to hit the mountains.
-                  li
-                    p
-                      | Right after you pass the mountains, start decreasing hieght and speed to prepare for landing.
-              li
-                p Landing:
-                ol
-                  li
-                    p Make a big U-turn again. Aim the runway from afar.
-                  li
-                    p Decrease height by keeping Pitch at about -10 deg.
-                  li
-                    p
-                      | When the height is close to zero, control Pitch at around 0 deg carefully so that you don't crash into the ocean. If you find that you cannot lift the pitch, that means your airspeed is too slow. (140-160 knots are good values.)
-                  li
-                    p If you touch the gorund too hard or with large pitch or roll, you will crash.
-              li
-                p After touchdown:
-                ol
-                  li
-                    p Make the thrust -100% to decelerate.
-                  li
-                    p Control direction so that you don't crash into the mountains.
-                  li
-                    p
-                      | It's fine if you don't land exactly on the runway. You can cruise to runway after deceleration.
-                  li
-                    p The winning condition is such that you stop on the runway.
-        h4
-          i Finally, practice makes perfect!
-    // Canvas
-    div(style='width: 520px; display: inline-block; vertical-align: top;')
+   
+  center
+    div(style='width: 520px; display: none; vertical-align: top;')
       canvas#myGLCanvas(width='500', height='500')
     // Interfaces
     div(style='display: inline-block; vertical-align: top;')
       h2 Welcome to Collins' flight simulator!
+
       // Obstacle options
       div
         | Obstacles: 
@@ -192,6 +78,8 @@ html(lang='en')
             h4 Roll
             #rollSlider(style='width:220px; margin: auto; margin-top: 35px; margin-bottom: 30px; ')
             p#rollSliderValue  
+             
+    
           .interfaceDiv
             h4 Horizontal Velocity
             canvas#velocityGaugeCanvas(width='120', height='80')
@@ -208,6 +96,17 @@ html(lang='en')
             h4 Fuel
             canvas#fuelGaugeCanvas(width='120', height='80')
             p#fuelGaugeValue  
+          .interfaceDiv(style='margin-top: 15px;')
+            h4 Select Type
+            select(onchange="(this.options[this.selectedIndex].value?  window.open(this.options[this.selectedIndex].value,'_blank'):'')")
+              option() Select Option
+              option(value='/') Engine
+              option(value='/') Fule Tank
+              option(value='/') Wings
+              option(value='/') FDAU   
+              option(value='/') Power Transfer Unit    
+              option(value='/') Engine Driven Pump    
+          br      
     // Shader program source codes (not displayed)
     #shader_codes(style='display:none;')
       // Terrain vertex shader
@@ -330,7 +229,7 @@ html(lang='en')
       margin: 0px;
       }
     script(type='text/javascript').
-      const Interval =  setInterval(check,500);
+      const Interval =  setInterval(check,2000);
       function check(){
       var a = getLiftForces();
       if(a != 0){
@@ -340,7 +239,7 @@ html(lang='en')
       clearInterval(Interval);
       }
       }
-      const Intervals = setInterval(as,500);
+      const Intervals = setInterval(as,2000);
       function getLiftForces(){
       /** Lift force = KEY_COEFF * LIFT_FORCE_COEFF * horizontal velocity */
       if (currentlyPressedKeys[38] || currentlyPressedKeys[87]) {
@@ -358,13 +257,11 @@ html(lang='en')
       if(!playing){
       document.cookie =
       'stop=true;path=/'
+      console.log("Engine Stopped");
       clearInterval(Intervals);
       }
       // body...
       }
       document.cookie.split(";").forEach(function(c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
-      document.addEventListener('keyup', function(e){
-      if(e.keyCode == 82)
-      window.location.reload();
-      })
+
   

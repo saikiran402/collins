@@ -81,6 +81,7 @@ function interfaceInit(){
                       direction: 'rtl',
                       animate: false
                     });
+  console.log(`interfaces.height:${interfaces.height}`);
   values.height = document.getElementById("heightSliderValue").firstChild;
 
   interfaces.thrust = noUiSlider.create(document.getElementById("thrustSlider"),
@@ -155,7 +156,7 @@ function interfaceUpdate() {
   
   interfaces.height.set( viewOrigin[2] );
   values.height.nodeValue = (viewOrigin[2]*10000).toFixed(2) + " feet";
-  
+    console.log(`interfaces.heights:${values.height.nodeValue}`);
   /** Increment/decrement thrust if necessary. */
   if(currentlyPressedKeys[88] || currentlyPressedKeys[76]){
     /** If X or L is pressed. */

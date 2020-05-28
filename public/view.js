@@ -137,6 +137,7 @@ function getHorizontalVelocity(){
   return Math.sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1]);
 }
 
+
 /** Helper function to make sure an angle falls within -PI to PI. 
  *  @param {float} angle in rad
  *  @return {float} angle in rad
