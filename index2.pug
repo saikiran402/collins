@@ -1,0 +1,274 @@
+doctype html
+head
+  script(type='text/javascript', src='as.js')
+  script(type='text/javascript', src='physics.js')
+  include partials/head.pug
+#container
+  #header
+  h2#content(style='text-align:center;margin-top:20px;') Engine is not Ready
+   h2#content-after(style='text-align:center;margin-top:20px;display:none') Engine Stopped
+  #sidebar(style='display:none;float:left')
+    include partials/sidebarmain.pug
+  div(style='display: inline-block; vertical-align: top;')
+      h2 Welcome to Collins' flight simulator!
+
+      // Obstacle options
+      div
+        | Obstacles: 
+        form(action='', style='display: inline-block; margin-right: 20px;')
+          input(type='radio', name='obstacle', value='', onclick='setObstacleLevel(0);this.blur();', checked='checked')
+          |  None
+          input(type='radio', name='obstacle', value='', onclick='setObstacleLevel(1);this.blur();')
+          |  Static
+          input(type='radio', name='obstacle', value='', onclick='setObstacleLevel(2);this.blur();')
+          |  Moving
+        a(href='javascript:void(0);', onclick="document.getElementById('instructions').style.display = 'block';") Click here for useful instructions!
+      // Message board
+      div
+        p
+          | Status: 
+          span#msgDOM  
+      // All other interfaces
+      .interfaceContainer(style='width: 100%; border: 1px solid grey; margin: 20px')
+        .column(style='width: 30%; float: left; margin: 1.5%')
+          //- include partials/performance-general.pug
+          h5 Engine Speed
+          canvas#engine-speed-chart(width='100%')
+        .column(style='width: 30%; float: left; margin: 1.5%')
+          h5 Height
+          canvas#height(width='100%')
+          .interfaceDiv(style='margin-top:15px')
+            h4 Fuel
+            canvas#fuelGaugeCanvas(width='120', height='80')
+            p#fuelGaugeValue 
+        
+          
+        .column(style='width: 30%; float: left; margin: 1.5%')
+          div(style='display:inline-block;margin-top:5px;')
+             .interfaceDiv(style='width:100%;')
+               h4 Roll
+               #rollSlider(style='width:220px; margin: auto; margin-top: 35px; margin-bottom: 30px; ')
+               p#rollSliderValue
+          .interfaceDiv(style='width: 100px; border: 1px solid red; padding: 5px')
+            h4 Thrust
+            #thrustSlider(style='height:200px; margin: auto; margin-top: 20px; margin-bottom: 30px;')
+            p#thrustSliderValue  
+            button#reverseButton(onclick="reverse=!reverse; this.style.borderStyle = (this.style.borderStyle!=='inset' ? 'inset' : 'outset'); ", style='border-style: outset;') Toggle reverse thrust (used after landing)
+         
+          .interfaceDiv(style='margin-top: 5px; width: 70px;')
+            h4 Pitch
+            #pitchSlider(style='height:200px; margin: auto; margin-top: 20px; margin-bottom: 30px;')
+            p#pitchSliderValue 
+        
+        div(style='display: inline-block; margin-top: 5px;')
+              
+    
+          
+          br
+          .interfaceDiv(style='margin-top: 5px; width:240px;')
+            h4 Position and Orientation
+            #positionDOM(style='position: relative; margin-left: 20px; width: 200px; height: 200px; border: 1px dashed gray; text-align: left; background-color: #c7ffc6;')
+              // North Direction icon by Icons8
+              img#orientationCompass(src='https://maxcdn.icons8.com/Color/PNG/96/Maps/north_direction-96.png', title='North Direction', width='24', style='position: absolute; z-index: 100;')
+              div(style='position: absolute; width: 2px; height: 20px; background-color: brown; left: 99px; top: 180px')
+              div(style='position: absolute; width: 2px; height: 20px; background-color: orange; left: 99px; top: 0px')
+           
+          .interfaceDiv(style='margin-top: 15px;')
+            h4 Select Type
+            select(onchange="(this.options[this.selectedIndex].value?  window.open(this.options[this.selectedIndex].value,'_blank'):'')")
+              option() Select Option
+              option(value='/') Engine
+              option(value='/') Fule Tank
+              option(value='/') Wings
+              option(value='/') FDAU   
+              option(value='/') Power Transfer Unit    
+              option(value='/') Engine Driven Pump    
+          br      
+    
+  include partials/footer.pug
+doctype html
+html(lang='en')
+  head
+  #viewer
+    title Collins' Flight Simulator
+    meta(charset='utf-8')
+    meta(property='og:title', content="Collins' Flight Simulator")
+    // All srcipts
+    script(type='text/javascript', src='gl-matrix-min.js')
+    script(type='text/javascript', src='webgl-utils.js')
+    script(type='text/javascript', src='gauge.min.js')
+    script(type='text/javascript', src='nouislider.min.js')
+    script(type='text/javascript', src='startup.js')
+    script(type='text/javascript', src='view.js')
+    script(type='text/javascript', src='terrain.js')
+    script(type='text/javascript', src='airplane.js')
+    script(type='text/javascript', src='misc.js')
+    script(type='text/javascript', src='interface.js')
+    script(type='text/javascript', src='physics.js')
+    script(type='text/javascript', src='webgl-debug.js')
+    link(rel='stylesheet', type='text/css', href='nouislider.min.css')
+  body(onload='startup();', style='height: 600px;')
+    // Instructions
+   
+  center
+    div(style='width: 520px; display: none; vertical-align: top;')
+      canvas#myGLCanvas(width='500', height='500')
+    // Interfaces
+    // Shader program source codes (not displayed)
+    #shader_codes(style='display:none;')
+      // Terrain vertex shader
+      // Gouraud shading with Phong reflection model
+      #terrainVertexShaderDOM
+        | attribute vec3 aVertexPosition;
+        | attribute vec3 aVertexColor;
+        | attribute vec3 aVertexNormal;
+        | uniform mat4 uPMatrix;
+        | uniform mat4 uMVMatrix;
+        | uniform vec3 uViewOrigin;
+        | uniform vec3 uLightDirection;
+        | uniform vec3 uAmbientLight;
+        | uniform vec3 uDiffuseLight;
+        | uniform vec3 uSpecularLight;
+        | const float shininess = 12.0;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        | vec3 normalizedLightDirection = normalize(uLightDirection);
+        | vec3 vectorReflection = normalize( reflect(-normalizedLightDirection, aVertexNormal) );
+        | vec3 vectorView = normalize( uViewOrigin - aVertexPosition );
+        | float diffuseLightWeighting = max( dot(aVertexNormal, normalizedLightDirection), 0.0 );
+        | float specularLightWeighting = pow( max( dot(vectorReflection, vectorView), 0.0), shininess );
+        | vColor= vec4( ( uAmbientLight * aVertexColor)
+        | + ((uDiffuseLight * aVertexColor) * diffuseLightWeighting)
+        | + ( uSpecularLight * specularLightWeighting),
+        | 1.0 );
+        | }
+      // Terrain fragment shader
+      #terrainFragmentShaderDOM
+        | precision mediump float;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_FragColor = vColor;
+        | }
+      // Airplane vertex shader
+      // Phong shading with Phong reflection model
+      #airplaneVertexShaderDOM
+        | attribute vec3 aVertexPosition;
+        | attribute vec3 aVertexColor;
+        | attribute vec3 aVertexNormal;
+        | uniform mat4 uPMatrix;
+        | uniform mat4 uMVMatrix;
+        | uniform mat4 uModelMatrix;
+        | varying vec3 vWorldPosition;
+        | varying vec3 vWorldNormal;
+        | varying vec3 vVertexColor;
+        | void main(void) {
+        | vec4 worldPosition = uModelMatrix * vec4(aVertexPosition, 1.0);
+        | vWorldPosition = vec3(worldPosition);
+        | vWorldNormal = normalize(mat3(uModelMatrix) * aVertexNormal);
+        | vVertexColor = aVertexColor;
+        | gl_Position = uPMatrix * uMVMatrix * worldPosition;
+        | }
+      // Airplane fragment shader
+      #airplaneFragmentShaderDOM
+        | precision mediump float;
+        | const float shininess = 50.0;
+        | uniform vec3 uViewOrigin;
+        | uniform vec3 uLightDirection;
+        | uniform vec3 uAmbientLight;
+        | uniform vec3 uDiffuseLight;
+        | uniform vec3 uSpecularLight;
+        | varying vec3 vWorldPosition;
+        | varying vec3 vWorldNormal;
+        | varying vec3 vVertexColor;
+        | void main(void) {
+        | vec3 worldPosition = vWorldPosition;
+        | vec3 worldNormal = normalize(vWorldNormal);
+        | vec3 normalizedLightDirection = normalize(uLightDirection);
+        | vec3 vectorReflection = normalize( reflect(-normalizedLightDirection, worldNormal) );
+        | vec3 vectorView = normalize( uViewOrigin - worldPosition );
+        | float diffuseLightWeighting = max( dot(worldNormal, normalizedLightDirection), 0.0 );
+        | float specularLightWeighting = pow( max( dot(vectorReflection, vectorView), 0.0), shininess );
+        | gl_FragColor = vec4( ( uAmbientLight * vVertexColor)
+        | + ((uDiffuseLight * vVertexColor) * diffuseLightWeighting)
+        | + ( uSpecularLight * specularLightWeighting),
+        | 1.0 );
+        | }
+      // Misc vertex shader
+      // Gouraud shading with Phong reflection model (no specular part)
+      #miscVertexShaderDOM
+        | attribute vec3 aVertexPosition;
+        | attribute vec3 aVertexColor;
+        | attribute vec3 aVertexNormal;
+        | uniform mat4 uPMatrix;
+        | uniform mat4 uMVMatrix;
+        | uniform vec3 uViewOrigin;
+        | uniform vec3 uLightDirection;
+        | uniform vec3 uAmbientLight;
+        | uniform vec3 uDiffuseLight;
+        | uniform vec3 uSpecularLight;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+        | vec3 normalizedLightDirection = normalize(uLightDirection);
+        | vec3 vectorReflection = normalize( reflect(-normalizedLightDirection, aVertexNormal) );
+        | vec3 vectorView = normalize( uViewOrigin - aVertexPosition );
+        | float diffuseLightWeighting = max( dot(aVertexNormal, normalizedLightDirection), 0.0 );
+        | vColor= vec4( ( uAmbientLight * aVertexColor)
+        | + ((uDiffuseLight * aVertexColor) * diffuseLightWeighting),
+        | 1.0 );
+        | }
+      // Misc fragment shader
+      #miscFragmentShaderDOM
+        | precision mediump float;
+        | varying vec4 vColor;
+        | void main(void) {
+        | gl_FragColor = vColor;
+        | }
+    style(type='text/css').
+      .interfaceDiv {
+      display: inline-block;
+      position: relative;
+      text-align: center;
+      vertical-align: top;
+      }
+      .interfaceDiv > * {
+      margin: 0px;
+      }
+    script(type='text/javascript').
+      const Interval =  setInterval(check,2000);
+      function check(){
+      var a = getLiftForces();
+      if(a != 0){
+      document.cookie =
+      'start=true;path=/'
+      console.log("Engine Started");
+      clearInterval(Interval);
+      }
+      }
+      const Intervals = setInterval(as,2000);
+      function getLiftForces(){
+      /** Lift force = KEY_COEFF * LIFT_FORCE_COEFF * horizontal velocity */
+      if (currentlyPressedKeys[38] || currentlyPressedKeys[87]) {
+      /** More lift force when Up-arrow or W is pressed. */
+      return LIFT_PITCH_COEFF[2] * LIFT_FORCE_COEFF * getHorizontalVelocity();
+      }else if (currentlyPressedKeys[40] || currentlyPressedKeys[83]) {
+      /** Less lift force when Down-arrow or S is pressed. */
+      return LIFT_PITCH_COEFF[0] * LIFT_FORCE_COEFF * getHorizontalVelocity();
+      }else{
+      /** Default lift force. */
+      return LIFT_PITCH_COEFF[1] * LIFT_FORCE_COEFF * getHorizontalVelocity();
+      }
+      }
+      function as() {
+      if(!playing){
+      document.cookie =
+      'stop=true;path=/'
+      console.log("Engine Stopped");
+      clearInterval(Intervals);
+      }
+      // body...
+      }
+      document.cookie.split(";").forEach(function(c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
+
+  
